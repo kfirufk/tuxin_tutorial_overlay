@@ -7,6 +7,7 @@ Color colorBlack = Colors.black.withOpacity(0.4);
 class OverlayPainter extends CustomPainter{
   BuildContext context;
   List<HoleArea> areas;
+  List<GlobalKey> keys;
   double padding;
 
   @override
@@ -31,6 +32,18 @@ class OverlayPainter extends CustomPainter{
     return oldDelegate != this;
   }
 
-  OverlayPainter({this.context,this.areas,this.padding=4});
-
+  OverlayPainter({this.context,this.keys,this.padding=4}){
+    areas = [];
+    if (keys.isNotEmpty) {
+      keys.forEach((key) {
+        if (key == null) {
+          throw new Exception("GlobalKey is null!");
+        } else if (key.currentWidget == null) {
+          throw new Exception("GlobalKey is not assigned to a Widget!");
+        } else {
+          areas.add(getHoleArea(key));
+        }
+      });
+    }
+  }
 }

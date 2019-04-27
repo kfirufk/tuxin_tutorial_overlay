@@ -3,12 +3,26 @@ import 'package:collection/collection.dart';
 import 'HoleArea.dart';
 
 class InvertedClipper extends CustomClipper<Path> {
-  final List<HoleArea> areas;
+  final List<GlobalKey> keys;
   double padding;
   Function deepEq = const DeepCollectionEquality().equals;
+  List<HoleArea> areas = [];
+
+  InvertedClipper({this.keys,this.padding=4}){
+    if (keys.isNotEmpty) {
+      keys.forEach((key) {
+        if (key == null) {
+          throw new Exception("GlobalKey is null!");
+        } else if (key.currentWidget == null) {
+          throw new Exception("GlobalKey is not assigned to a Widget!");
+        } else {
+          areas.add(getHoleArea(key));
+        }
+      });
+    }
+  }
 
 
-  InvertedClipper({this.areas,this.padding=4});
 
   @override
   Path getClip(Size size) {

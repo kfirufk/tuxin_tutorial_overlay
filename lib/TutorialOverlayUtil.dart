@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'OverlayPainter.dart';
 import 'InvertedClipper.dart';
-import 'HoleArea.dart';
 
 
 void showOverlayEntry(BuildContext context, OverlayEntry entry) {
@@ -12,47 +13,35 @@ void removeOverlayEntry(OverlayEntry entry) {
   entry.remove();
 }
 
+Future waitForFrameToEnd() async {
+  Completer completer = new Completer();
+  SchedulerBinding.instance.addPostFrameCallback((_) {
+    completer.complete();
+  });
+  return completer.future;
+}
+
 OverlayEntry createTutorialOverlay({@required BuildContext context, 
     List<GlobalKey> enabledKeys = const[],
     List<GlobalKey> disabledKeys = const[],
 Widget description}) {
-  List<HoleArea> enabledAreas = [];
-  List<HoleArea> disabledAreas = [];
-  if (enabledKeys.isNotEmpty) {
-    enabledKeys.forEach((key) {
-      if (key == null) {
-        throw new Exception("GlobalKey is null!");
-      } else if (key.currentWidget == null) {
-        throw new Exception("GlobalKey is not assigned to a Widget!");
-      } else {
-        enabledAreas.add(getHoleArea(key));
-      }
-    });
-  }
-  if (disabledKeys.isNotEmpty) {
-    disabledKeys.forEach((key) {
-      if (key == null) {
-        throw new Exception("GlobalKey is null!");
-      } else if (key.currentWidget == null) {
-        throw new Exception("GlobalKey is not assigned to a Widget!");
-      }
-      else {
-        disabledAreas.add(getHoleArea(key));
-      }
-    });
-  }
 
   return OverlayEntry(
-    builder: (BuildContext context) =>
+    builder: (BuildContext context1) =>
+  FutureBuilder(
+      future: waitForFrameToEnd(),
+      builder:(BuildContext context, AsyncSnapshot snapshot) =>
         ClipPath(
-            clipper: InvertedClipper(areas: enabledAreas),
+            clipper: InvertedClipper(keys: enabledKeys),
             child: CustomPaint(
               child: Container(
                 child: description,
               ),
-              painter: OverlayPainter(context: context, areas: disabledAreas),
+              painter: OverlayPainter(context: context, keys: disabledKeys),
             )
-        ),
+        )
+
+  )
   );
 }
 
