@@ -4,7 +4,7 @@ import 'HoleArea.dart';
 
 Color colorBlack = Colors.black.withOpacity(0.4);
 
-class OverlayPainter extends CustomPainter{
+class OverlayPainter extends CustomPainter {
   BuildContext context;
   List<HoleArea> areas;
   List<GlobalKey> keys;
@@ -15,16 +15,19 @@ class OverlayPainter extends CustomPainter{
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
     Path path = Path()..addRect(Rect.fromLTWH(0, 0, screenWidth, screenHeight));
-    areas.forEach((area){
-      path = Path.combine(PathOperation.difference,
+    areas.forEach((area) {
+      path = Path.combine(
+          PathOperation.difference,
           path,
           Path()
-            ..addOval(Rect.fromLTWH(area.x-(padding/2),area.y-padding/2,area.width+padding,area.height+padding)));
+            ..addOval(Rect.fromLTWH(
+                area.x - (padding / 2),
+                area.y - padding / 2,
+                area.width + padding,
+                area.height + padding)));
     });
 
-    canvas.drawPath(path,
-        Paint()..color = colorBlack);
-
+    canvas.drawPath(path, Paint()..color = colorBlack);
   }
 
   @override
@@ -32,7 +35,7 @@ class OverlayPainter extends CustomPainter{
     return oldDelegate != this;
   }
 
-  OverlayPainter({this.context,this.keys,this.padding=4}){
+  OverlayPainter({this.context, this.keys, this.padding = 4}) {
     areas = [];
     if (keys.isNotEmpty) {
       keys.forEach((key) {

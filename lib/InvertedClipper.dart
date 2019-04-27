@@ -8,7 +8,7 @@ class InvertedClipper extends CustomClipper<Path> {
   Function deepEq = const DeepCollectionEquality().equals;
   List<HoleArea> areas = [];
 
-  InvertedClipper({this.keys,this.padding=4}){
+  InvertedClipper({this.keys, this.padding = 4}) {
     if (keys.isNotEmpty) {
       keys.forEach((key) {
         if (key == null) {
@@ -22,13 +22,12 @@ class InvertedClipper extends CustomClipper<Path> {
     }
   }
 
-
-
   @override
   Path getClip(Size size) {
     Path path = Path();
     areas.forEach((HoleArea area) {
-      path.addOval(Rect.fromLTWH(area.x-(padding/2),area.y-padding/2,area.width+padding,area.height+padding));
+      path.addOval(Rect.fromLTWH(area.x - (padding / 2), area.y - padding / 2,
+          area.width + padding, area.height + padding));
     });
     return path
       ..addRect(Rect.fromLTWH(0.0, 0.0, size.width, size.height))
@@ -37,6 +36,6 @@ class InvertedClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(InvertedClipper oldClipper) {
-    return oldClipper.padding != padding || (!deepEq(oldClipper.areas,areas));
+    return oldClipper.padding != padding || (!deepEq(oldClipper.areas, areas));
   }
 }
