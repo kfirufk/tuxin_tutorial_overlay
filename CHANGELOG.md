@@ -1,4 +1,4 @@
-## [0.1] - 27/04/19
+## [0.1.0] - 27/04/19
 
 * included onTap event
 * removed context parameter requirement from createTutorialOverlay()
