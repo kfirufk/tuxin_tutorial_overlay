@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:tuxin_tutorial_overlay/TutorialOverlayUtil.dart';
+import 'package:tuxin_tutorial_overlay/WidgetData.dart';
 
 void main() => runApp(MyApp());
 
@@ -35,11 +36,19 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       OverlayEntry tut1 = createTutorialOverlay(
-          context: context,
-          enabledKeys: [buttonKey],
-          disabledKeys: [counterKey],
-          description: Text('hello',textAlign: TextAlign.center,style: TextStyle(decoration: TextDecoration.none),)
-      );
+          bgColor: Colors.green.withOpacity(
+              0.4), // Optional. uses black color with 0.4 opacity by default
+          onTap: () => print("TAP"),
+          widgetsData: <WidgetData>[
+            WidgetData(key: buttonKey, isEnabled: true, padding: 4),
+            WidgetData(
+                key: counterKey, isEnabled: false, shape: WidgetShape.Rect)
+          ],
+          description: Text(
+            'hello',
+            textAlign: TextAlign.center,
+            style: TextStyle(decoration: TextDecoration.none),
+          ));
       showOverlayEntry(context, tut1);
     });
 
