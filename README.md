@@ -72,7 +72,7 @@ void removeOverlayEntry(OverlayEntry entry);
 
 * please note that you need to use the `createTutorialOverlay()` function only after the elements have been drawn in order to get their proper location and size. 
 in my example I created the overlay at the `initState()` function of my `StatefulWidget`, so in order for the elements
-to be drawn first I needed to execute the function inside a post callback:
+to be drawn first I needed to execute the function inside a post frame callback:
 ```dart
 
 import 'package:flutter/scheduler.dart';
