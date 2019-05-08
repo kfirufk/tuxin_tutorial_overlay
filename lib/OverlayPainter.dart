@@ -85,9 +85,9 @@ class OverlayPainter extends CustomPainter {
         if (!widgetData.isEnabled) {
           final GlobalKey key = widgetData.key;
           if (key == null) {
-            throw new Exception("GlobalKey is null!");
+            //throw new Exception("GlobalKey is null!");
           } else if (key.currentWidget == null) {
-            throw new Exception("GlobalKey is not assigned to a Widget!");
+            //throw new Exception("GlobalKey is not assigned to a Widget!");
           } else {
             areas.add(getHoleArea(
                 key: key,

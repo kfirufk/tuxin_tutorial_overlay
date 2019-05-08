@@ -31,11 +31,12 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   final GlobalKey buttonKey = GlobalKey();
   final GlobalKey counterKey = GlobalKey();
-
+  double _leftPosition = 0;
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      OverlayEntry tut1 = createTutorialOverlay(
+      createTutorialOverlay(
+          tagName: 'example',
           bgColor: Colors.green.withOpacity(
               0.4), // Optional. uses black color with 0.4 opacity by default
           onTap: () => print("TAP"),
@@ -49,7 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
             textAlign: TextAlign.center,
             style: TextStyle(decoration: TextDecoration.none),
           ));
-      showOverlayEntry(context, tut1);
+
+      showOverlayEntry(context, 'example');
     });
 
     super.initState();
@@ -57,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
+      _leftPosition += 10;
       _counter++;
     });
   }
@@ -74,11 +77,13 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              key: counterKey,
-              style: Theme.of(context).textTheme.display1,
-            ),
+            Padding(
+                padding: EdgeInsets.fromLTRB(_leftPosition, 0, 0, 0),
+                child: Text(
+                  '$_counter',
+                  key: counterKey,
+                  style: Theme.of(context).textTheme.display1,
+                ))
           ],
         ),
       ),

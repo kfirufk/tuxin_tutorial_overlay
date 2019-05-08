@@ -43,12 +43,14 @@ you use it to define each widget's relevant properties, like padding, enabled/di
 `TutorialOverlayUtil.dart` contains the following function:
 
 ```dart
-OverlayEntry createTutorialOverlay(
-    {List<WidgetData> widgetsData = const [],
+void createTutorialOverlay(
+    {@required String tagName,
+    List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
     Widget description})
 ```
+`tagName` - the name of the overlay screen, to be used later when you want to show it
 
 `widgetsData` - is a List of each widget that you want to be fully visible and the relevant properties (padding, enable/disable interaction and hole shape)
 
@@ -58,17 +60,16 @@ OverlayEntry createTutorialOverlay(
 
 `description` - a Widget to display on top of the overlay, usually contains instructions on current frame
 
-it also contains two functions that pretty much have only one line of code,
-it's just for users that are not familiar with overlay concepts so it will be easier for them to implement this package.
+I also created two functions to show and hide an overlay.  
 
 ```dart
-void showOverlayEntry(BuildContext context, OverlayEntry entry);
-void removeOverlayEntry(OverlayEntry entry);
+void showOverlayEntry(BuildContext context, String tagName) async;
+void hideOverlayEntryIfExists();
 ```
 
 `showOverlayEntry()` is used to show the overlay that you created earlier with `createTutorialOverlay()`.
 
-`removeOverlayEntry()` is used to hide the overlay
+`hideOverlayEntryIfExists()` is used to hide the overlay
 
 * please note that you need to use the `createTutorialOverlay()` function only after the elements have been drawn in order to get their proper location and size. 
 in my example I created the overlay at the `initState()` function of my `StatefulWidget`, so in order for the elements
@@ -82,11 +83,12 @@ import 'package:flutter/scheduler.dart';
 @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      OverlayEntry tut1 = createTutorialOverlay(
+      createTutorialOverlay(
+      tagName: 'example',
           ...
           )
       );
-      showOverlayEntry(context, tut1);
+      showOverlayEntry(context, 'example');
     });
 
 ``` 
@@ -127,11 +129,12 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   final GlobalKey buttonKey = GlobalKey();
   final GlobalKey counterKey = GlobalKey();
-
+  double _leftPosition = 0;
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      OverlayEntry tut1 = createTutorialOverlay(
+      createTutorialOverlay(
+          tagName: 'example',
           bgColor: Colors.green.withOpacity(
               0.4), // Optional. uses black color with 0.4 opacity by default
           onTap: () => print("TAP"),
@@ -145,7 +148,8 @@ class _MyHomePageState extends State<MyHomePage> {
             textAlign: TextAlign.center,
             style: TextStyle(decoration: TextDecoration.none),
           ));
-      showOverlayEntry(context, tut1);
+
+      showOverlayEntry(context, 'example');
     });
 
     super.initState();
@@ -153,6 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
+      _leftPosition += 10;
       _counter++;
     });
   }
@@ -170,11 +175,13 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              key: counterKey,
-              style: Theme.of(context).textTheme.display1,
-            ),
+            Padding(
+                padding: EdgeInsets.fromLTRB(_leftPosition, 0, 0, 0),
+                child: Text(
+                  '$_counter',
+                  key: counterKey,
+                  style: Theme.of(context).textTheme.display1,
+                ))
           ],
         ),
       ),
@@ -194,3 +201,7 @@ to execute this code see the example app :)
 ## Showcase from example app
 
 ![capture](https://github.com/kfirufk/tuxin_tutorial_overlay/raw/master/example/tuxin_tutorial_overlay_example.png)
+
+#### usage of this package in production
+
+* Folocard -  [http://folocard.com](http://folocard.com)

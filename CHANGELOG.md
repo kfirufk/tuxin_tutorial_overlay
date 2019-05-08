@@ -1,3 +1,11 @@
+## [0.2.0] - 08/05/19
+
+* global keys that are null or not connected to a Widgets are silently 
+ignored instead of throwing an exception
+* detecting position and size change of widgets in order to redraw the overlay
+* added synchronized package dependency to make sure showOverlayEntry is being
+called synchronized. 
+
 ## [0.1.0] - 28/04/19
 
 * included onTap event
