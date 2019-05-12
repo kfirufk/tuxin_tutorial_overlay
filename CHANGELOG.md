@@ -1,3 +1,13 @@
+## [0.3.0] - 12/05/19
+* BuildContext is now required when creating the overlay page instead of when showing it
+* added animation support
+* added default padding for all visible widgets
+* api changes \
+      - createTutorialOverlay requires a context\
+      - showOverlayEntry required named parameters and does not require context parameter\
+      - showOverlayEntry as a new optional parameter 
+      redisplayOverlayIfSameTAgName if to redraw the overlay when requested to display an already displayed overlay 
+
 ## [0.2.0] - 08/05/19
 
 * global keys that are null or not connected to a Widgets are silently 

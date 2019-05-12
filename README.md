@@ -45,12 +45,21 @@ you use it to define each widget's relevant properties, like padding, enabled/di
 ```dart
 void createTutorialOverlay(
     {@required String tagName,
+      @required BuildContext context,
+      bool enableHolesAnimation = true,
+      double defaultPadding = 4,
     List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
     Widget description})
 ```
 `tagName` - the name of the overlay screen, to be used later when you want to show it
+
+`context` - the BuildContext of the page
+
+`enableHolesAnimation` - enable animation on visible widgets to draw attention to them
+
+`defaultPadding` - default padding to add to each hole that shows a widget
 
 `widgetsData` - is a List of each widget that you want to be fully visible and the relevant properties (padding, enable/disable interaction and hole shape)
 
@@ -63,7 +72,7 @@ void createTutorialOverlay(
 I also created two functions to show and hide an overlay.  
 
 ```dart
-void showOverlayEntry(BuildContext context, String tagName) async;
+void showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = true}) async;
 void hideOverlayEntryIfExists();
 ```
 
@@ -134,6 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       createTutorialOverlay(
+        context: context,
           tagName: 'example',
           bgColor: Colors.green.withOpacity(
               0.4), // Optional. uses black color with 0.4 opacity by default
@@ -149,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
             style: TextStyle(decoration: TextDecoration.none),
           ));
 
-      showOverlayEntry(context, 'example');
+      showOverlayEntry(tagName: 'example');
     });
 
     super.initState();
@@ -194,6 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
 ```
 
 to execute this code see the example app :)

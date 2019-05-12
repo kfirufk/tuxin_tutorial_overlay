@@ -9,18 +9,21 @@ Color colorBlack = Colors.black.withOpacity(0.4);
 
 class OverlayPainter extends CustomPainter {
 
-  final Animation<double> _animation;
+  final Animation<double> animation;
 
   BuildContext context;
   List<HoleArea> areas;
   List<WidgetData> widgetsData;
   Color bgColor;
+  double padding;
 
   @override
   void paint(Canvas canvas, Size size) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
     Path path = Path()..addRect(Rect.fromLTWH(0, 0, screenWidth, screenHeight));
+    double animationValue = animation != null ? animation.value : 0;
+
     areas.forEach((area) {
       switch (area.shape) {
         case WidgetShape.Oval:
@@ -30,10 +33,10 @@ class OverlayPainter extends CustomPainter {
                 path,
                 Path()
                   ..addOval(Rect.fromLTWH(
-                      area.x - ((area.padding + _animation.value*15) / 2),
-                      area.y - (area.padding + _animation.value*15) / 2,
-                      area.width + (area.padding + _animation.value*15),
-                      area.height + (area.padding + _animation.value*15))));
+                      area.x - (((area.padding+padding) + animationValue*15) / 2),
+                      area.y - ((area.padding+padding) + animationValue*15) / 2,
+                      area.width + ((area.padding+padding) + animationValue*15),
+                      area.height + ((area.padding+padding) + animationValue*15))));
           }
           break;
         case WidgetShape.Rect:
@@ -43,10 +46,10 @@ class OverlayPainter extends CustomPainter {
                 path,
                 Path()
                   ..addRect(Rect.fromLTWH(
-                      area.x - ((area.padding + _animation.value*15) / 2),
-                      area.y - (area.padding + _animation.value*15) / 2,
-                      area.width + (area.padding + _animation.value*15),
-                      area.height + (area.padding + _animation.value*15))));
+                      area.x - (((area.padding+padding) + animationValue*15) / 2),
+                      area.y - ((area.padding+padding) + animationValue*15) / 2,
+                      area.width + ((area.padding+padding) + animationValue*15),
+                      area.height + ((area.padding+padding) + animationValue*15))));
           }
           break;
         case WidgetShape.RRect:
@@ -57,10 +60,10 @@ class OverlayPainter extends CustomPainter {
                 Path()
                   ..addRRect(RRect.fromRectAndCorners(
                       Rect.fromLTWH(
-                          area.x - ((area.padding + _animation.value*15) / 2),
-                          area.y - (area.padding + _animation.value*15) / 2,
-                          area.width + (area.padding + _animation.value*15),
-                          area.height + (area.padding + _animation.value*15)),
+                          area.x - (((area.padding+padding) + animationValue*15) / 2),
+                          area.y - ((area.padding+padding) + animationValue*15) / 2,
+                          area.width + ((area.padding+padding) + animationValue*15),
+                          area.height + ((area.padding+padding) + animationValue*15)),
                       topLeft: Radius.circular(5.0),
                       topRight: Radius.circular(5.0),
                       bottomLeft: Radius.circular(5.0),
@@ -78,7 +81,7 @@ class OverlayPainter extends CustomPainter {
     return oldDelegate != this;
   }
 
-  OverlayPainter(this._animation, {this.context, this.widgetsData, this.bgColor}) : super(repaint: _animation) {
+  OverlayPainter({@required this.padding, this.animation, this.context, this.widgetsData, this.bgColor}) : super(repaint: animation) {
     areas = [];
     if (this.bgColor == null) {
       this.bgColor = colorBlack;

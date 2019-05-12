@@ -1,6 +1,6 @@
 name: tuxin_tutorial_overlay
 description: an overlay package that can be used for tutorials and walkthrough
-version: 0.2.0
+version: 0.3.0
 author: Kfir Zohar Ozer <ufkfir@icloud.com>
 homepage: https://github.com/kfirufk/tuxin_tutorial_overlay
 

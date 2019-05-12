@@ -12,8 +12,8 @@ OverlayData visibleOverlayPage;
 
 Map<String, OverlayData> _overlays = {};
 Map<GlobalKey, Rect> _rectMap = {};
-BuildContext _context;
 Lock _showOverlayLock = Lock();
+final int highlightCount=2;
 
 bool _debugInfo = false;
 bool _doneIt = false;
@@ -24,12 +24,16 @@ class OverlayData {
   int disabledVisibleWidgetsCount;
   bool detectWidgetPositionNSizeChanges;
   String tagName;
+  BuildContext context;
+  AnimationController animationController;
   List<GlobalKey> widgetsGlobalKeys;
 
   OverlayData(
       {@required this.entry,
-      @required this.tagName,
+       @required this.tagName,
+       @required this.context,
       this.widgetsGlobalKeys,
+      this.animationController,
       this.enabledVisibleWidgetsCount = 0,
       this.disabledVisibleWidgetsCount = 0,
       this.detectWidgetPositionNSizeChanges = true});
@@ -79,16 +83,15 @@ void redrawCurrentOverlay() {
   if (visibleOverlayPage != null) {
     _printIfDebug('redrawCurrentOverlay',"tag ${visibleOverlayPage.tagName}");
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      visibleOverlayPage.entry.remove();
-      Overlay.of(_context).insert(visibleOverlayPage.entry);
+      _showOverlayEntry(tagName: visibleOverlayPage.tagName, redisplayOverlayIfSameTAgName: true);
     });
   } else {
     _printIfDebug('redrawCurrentOverlay','called with empty tag');
   }
 }
 
-void _showOverlayEntry(BuildContext context, String tagName)  {
-  _printIfDebug('_showOverlayEntry',"for tag $tagName");
+void _showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = false}) {
+  _printIfDebug('_showOverlayEntry', "for tag $tagName");
   SchedulerBinding.instance.addPostFrameCallback((_) {
     if (!_doneIt) {
       _doneIt = true;
@@ -96,28 +99,29 @@ void _showOverlayEntry(BuildContext context, String tagName)  {
     }
   });
 
-  if (visibleOverlayPage == null || visibleOverlayPage.tagName != tagName) {
-    _printIfDebug('_showOverlayEntry',"tagname null or differs from current");
-    _context = context;
+  if (redisplayOverlayIfSameTAgName ||
+      (visibleOverlayPage == null || visibleOverlayPage.tagName != tagName)) {
+    _printIfDebug('_showOverlayEntry', "tagname null or differs from current");
     // ignore if tag name already displayed
     if (!_overlays.containsKey(tagName)) {
       throw new Exception("tag name '$tagName' for overlay does not exists!");
     }
-
-    if (visibleOverlayPage == null ||
-        visibleOverlayPage.tagName != tagName) {
-      hideOverlayEntryIfExists();
-      Overlay.of(context).insert(_overlays[tagName].entry);
-      visibleOverlayPage = _overlays[tagName];
+    hideOverlayEntryIfExists();
+    final OverlayData data = _overlays[tagName];
+    Overlay.of(data.context).insert(data.entry);
+    visibleOverlayPage = data;
+    if (data.animationController != null) {
+      data.animationController.reset();
+      data.animationController.forward();
     }
   }
   _printIfDebug('_showOverlayEntry', 'function completed');
 }
 
-void showOverlayEntry(BuildContext context, String tagName) async {
+void showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = true}) async {
   SchedulerBinding.instance.addPostFrameCallback((d)=>
   _showOverlayLock.synchronized(()=>
-      _showOverlayEntry(context,tagName)
+      _showOverlayEntry(tagName: tagName,redisplayOverlayIfSameTAgName: redisplayOverlayIfSameTAgName)
   )
   );
 }
@@ -138,13 +142,17 @@ Future waitForFrameToEnd() async {
 
 void createTutorialOverlayIfNotExists(
     {@required String tagName,
+      @required BuildContext context,
+    bool enableHolesAnimation= true,
     List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
     Widget description}) {
   if (!_overlays.containsKey(tagName)) {
     createTutorialOverlay(
+      context: context,
         tagName: tagName,
+        enableHolesAnimation: enableHolesAnimation,
         widgetsData: widgetsData,
         onTap: onTap,
         bgColor: bgColor,
@@ -154,6 +162,9 @@ void createTutorialOverlayIfNotExists(
 
 void createTutorialOverlay(
     {@required String tagName,
+      @required BuildContext context,
+      bool enableHolesAnimation = true,
+      double defaultPadding = 4,
     List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
@@ -174,7 +185,38 @@ void createTutorialOverlay(
       disabledVisibleWidgetsCount++;
     }
   });
+  AnimationController animationController;
+  CurvedAnimation animation;
+  if (enableHolesAnimation) {
+    animationController =
+        AnimationController(
+            vsync: Overlay.of(context),
+            duration: Duration(milliseconds: 100));
+    animation =
+        CurvedAnimation(parent: animationController,
+            curve: Curves.easeInOut,
+            reverseCurve: Curves.easeInOut);
+    int animCount = 0;
+    animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (animCount < highlightCount) {
+          animationController.reverse();
+          animCount++;
+        }
+      }
+      else if (status == AnimationStatus.dismissed) {
+        if (animCount < highlightCount) {
+          animationController.forward();
+        } else {
+          animCount=0;
+        }
+      }
+    });
+    //animationController.forward();
+  }
   _overlays[tagName] = OverlayData(
+    context: context,
+      animationController: animationController,
       widgetsGlobalKeys: widgetsGlobalKeys,
       enabledVisibleWidgetsCount: enabledVisibleWidgetsCount,
       disabledVisibleWidgetsCount: disabledVisibleWidgetsCount,
@@ -183,42 +225,22 @@ void createTutorialOverlay(
       FutureBuilder(
           future: waitForFrameToEnd(),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
-            final AnimationController animationController =
-            AnimationController(
-                vsync: Overlay.of(context),
-                duration: Duration(milliseconds: 100));
-            final CurvedAnimation animation =
-            CurvedAnimation(parent: animationController,
-                curve: Curves.easeInOut,
-            reverseCurve: Curves.easeInOut);
-            int animCount = 0;
-            animationController.addStatusListener((status) {
-              if (status == AnimationStatus.completed) {
-                if (animCount < 2) {
-                  animationController.reverse();
-                  animCount++;
-                }
-              }
-              else if (status == AnimationStatus.dismissed) {
-                if (animCount < 2) {
-                  animationController.forward();
-                }
-              }
-            });
-            animationController.forward();
+
             return GestureDetector(
                 onTap: onTap,
                 child: ClipPath(
                     clipper: InvertedClipper(
-                        animation,
-                        animationController,
+                      padding: defaultPadding,
+                        animation: animation,
+                        reclip: animationController,
                         widgetsData: widgetsData),
                     child: CustomPaint(
                       child: Container(
                         child: description,
                       ),
                       painter: OverlayPainter(
-                          animation,
+                        padding: defaultPadding,
+                          animation: animation,
                           bgColor: bgColor,
                           context: context,
                           widgetsData: widgetsData),

@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       createTutorialOverlay(
+        context: context,
           tagName: 'example',
           bgColor: Colors.green.withOpacity(
               0.4), // Optional. uses black color with 0.4 opacity by default
@@ -51,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
             style: TextStyle(decoration: TextDecoration.none),
           ));
 
-      showOverlayEntry(context, 'example');
+      showOverlayEntry(tagName: 'example');
     });
 
     super.initState();
