@@ -8,6 +8,9 @@ import 'WidgetData.dart';
 Color colorBlack = Colors.black.withOpacity(0.4);
 
 class OverlayPainter extends CustomPainter {
+
+  final Animation<double> _animation;
+
   BuildContext context;
   List<HoleArea> areas;
   List<WidgetData> widgetsData;
@@ -27,10 +30,10 @@ class OverlayPainter extends CustomPainter {
                 path,
                 Path()
                   ..addOval(Rect.fromLTWH(
-                      area.x - (area.padding / 2),
-                      area.y - area.padding / 2,
-                      area.width + area.padding,
-                      area.height + area.padding)));
+                      area.x - ((area.padding + _animation.value*15) / 2),
+                      area.y - (area.padding + _animation.value*15) / 2,
+                      area.width + (area.padding + _animation.value*15),
+                      area.height + (area.padding + _animation.value*15))));
           }
           break;
         case WidgetShape.Rect:
@@ -40,10 +43,10 @@ class OverlayPainter extends CustomPainter {
                 path,
                 Path()
                   ..addRect(Rect.fromLTWH(
-                      area.x - (area.padding / 2),
-                      area.y - area.padding / 2,
-                      area.width + area.padding,
-                      area.height + area.padding)));
+                      area.x - ((area.padding + _animation.value*15) / 2),
+                      area.y - (area.padding + _animation.value*15) / 2,
+                      area.width + (area.padding + _animation.value*15),
+                      area.height + (area.padding + _animation.value*15))));
           }
           break;
         case WidgetShape.RRect:
@@ -54,10 +57,10 @@ class OverlayPainter extends CustomPainter {
                 Path()
                   ..addRRect(RRect.fromRectAndCorners(
                       Rect.fromLTWH(
-                          area.x - (area.padding / 2),
-                          area.y - area.padding / 2,
-                          area.width + area.padding,
-                          area.height + area.padding),
+                          area.x - ((area.padding + _animation.value*15) / 2),
+                          area.y - (area.padding + _animation.value*15) / 2,
+                          area.width + (area.padding + _animation.value*15),
+                          area.height + (area.padding + _animation.value*15)),
                       topLeft: Radius.circular(5.0),
                       topRight: Radius.circular(5.0),
                       bottomLeft: Radius.circular(5.0),
@@ -75,7 +78,7 @@ class OverlayPainter extends CustomPainter {
     return oldDelegate != this;
   }
 
-  OverlayPainter({this.context, this.widgetsData, this.bgColor}) {
+  OverlayPainter(this._animation, {this.context, this.widgetsData, this.bgColor}) : super(repaint: _animation) {
     areas = [];
     if (this.bgColor == null) {
       this.bgColor = colorBlack;

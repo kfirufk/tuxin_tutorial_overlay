@@ -16,7 +16,6 @@ BuildContext _context;
 Lock _showOverlayLock = Lock();
 
 bool _debugInfo = false;
-
 bool _doneIt = false;
 
 class OverlayData {
@@ -183,20 +182,49 @@ void createTutorialOverlay(
       entry: OverlayEntry(builder: (BuildContext context) =>
       FutureBuilder(
           future: waitForFrameToEnd(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) =>
-          GestureDetector(
-              onTap: onTap,
-              child: ClipPath(
-                  clipper: InvertedClipper(widgetsData: widgetsData),
-                  child: CustomPaint(
-                    child: Container(
-                      child: description,
-                    ),
-                    painter: OverlayPainter(
-                        bgColor: bgColor,
-                        context: context,
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            final AnimationController animationController =
+            AnimationController(
+                vsync: Overlay.of(context),
+                duration: Duration(milliseconds: 100));
+            final CurvedAnimation animation =
+            CurvedAnimation(parent: animationController,
+                curve: Curves.easeInOut,
+            reverseCurve: Curves.easeInOut);
+            int animCount = 0;
+            animationController.addStatusListener((status) {
+              if (status == AnimationStatus.completed) {
+                if (animCount < 2) {
+                  animationController.reverse();
+                  animCount++;
+                }
+              }
+              else if (status == AnimationStatus.dismissed) {
+                if (animCount < 2) {
+                  animationController.forward();
+                }
+              }
+            });
+            animationController.forward();
+            return GestureDetector(
+                onTap: onTap,
+                child: ClipPath(
+                    clipper: InvertedClipper(
+                        animation,
+                        animationController,
                         widgetsData: widgetsData),
-                  ))))
+                    child: CustomPaint(
+                      child: Container(
+                        child: description,
+                      ),
+                      painter: OverlayPainter(
+                          animation,
+                          bgColor: bgColor,
+                          context: context,
+                          widgetsData: widgetsData),
+                    )));
+          }
+  )
       ));
 }
 
