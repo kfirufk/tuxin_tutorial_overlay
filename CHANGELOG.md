@@ -1,3 +1,9 @@
+## [0.4.0] - 14/05/19
+
+* added uuid package to distinguish between each overlay with same tag name
+* added animation repeat functionality
+* changed createTutorialOverlay() function to include animation related parameters
+
 ## [0.3.0] - 12/05/19
 * BuildContext is now required when creating the overlay page instead of when showing it
 * added animation support

@@ -8,14 +8,18 @@ import 'InvertedClipper.dart';
 import 'OverlayPainter.dart';
 import 'WidgetData.dart';
 
+import 'package:uuid/uuid.dart';
+
 OverlayData visibleOverlayPage;
 
 Map<String, OverlayData> _overlays = {};
 Map<GlobalKey, Rect> _rectMap = {};
 Lock _showOverlayLock = Lock();
-final int highlightCount=2;
 
-bool _debugInfo = false;
+final uuid = new Uuid();
+
+
+bool _debugInfo = true;
 bool _doneIt = false;
 
 class OverlayData {
@@ -27,11 +31,17 @@ class OverlayData {
   BuildContext context;
   AnimationController animationController;
   List<GlobalKey> widgetsGlobalKeys;
+  Function hideOverlay;
+  Function showOverlay;
+  String uuid;
 
   OverlayData(
       {@required this.entry,
        @required this.tagName,
        @required this.context,
+       @required this.hideOverlay,
+       @required this.showOverlay,
+        @required this.uuid,
       this.widgetsGlobalKeys,
       this.animationController,
       this.enabledVisibleWidgetsCount = 0,
@@ -110,10 +120,8 @@ void _showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = fal
     final OverlayData data = _overlays[tagName];
     Overlay.of(data.context).insert(data.entry);
     visibleOverlayPage = data;
-    if (data.animationController != null) {
-      data.animationController.reset();
-      data.animationController.forward();
-    }
+    visibleOverlayPage.showOverlay();
+
   }
   _printIfDebug('_showOverlayEntry', 'function completed');
 }
@@ -129,7 +137,8 @@ void showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = true
 void hideOverlayEntryIfExists() {
   if (visibleOverlayPage != null) {
     _printIfDebug('hideOverlayEntryIfExists', "found tag ${visibleOverlayPage.tagName}");
-    _overlays[visibleOverlayPage.tagName].entry.remove();
+    visibleOverlayPage.hideOverlay();
+    visibleOverlayPage.entry.remove();
     visibleOverlayPage = null;
   }
 }
@@ -164,11 +173,17 @@ void createTutorialOverlay(
     {@required String tagName,
       @required BuildContext context,
       bool enableHolesAnimation = true,
+      bool enableAnimationRepeat = true,
       double defaultPadding = 4,
     List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
-    Widget description}) {
+    Widget description,
+    int highlightCount=3,
+    int animationMilliseconds=150,
+    int animationRepeatDelayMilliseconds = 3000
+    }) {
+  final String generatedUUID = uuid.v4();
   _printIfDebug('createTutorialOverlay', "starteed for tag $tagName");
   if (visibleOverlayPage != null && visibleOverlayPage.tagName == tagName) {
     // removes shown overlay if it's beiong rewritten
@@ -191,12 +206,13 @@ void createTutorialOverlay(
     animationController =
         AnimationController(
             vsync: Overlay.of(context),
-            duration: Duration(milliseconds: 100));
+            duration: Duration(milliseconds: animationMilliseconds));
     animation =
         CurvedAnimation(parent: animationController,
             curve: Curves.easeInOut,
             reverseCurve: Curves.easeInOut);
     int animCount = 0;
+    bool inTheMiddleOfFuture=false;
     animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         if (animCount < highlightCount) {
@@ -209,18 +225,38 @@ void createTutorialOverlay(
           animationController.forward();
         } else {
           animCount=0;
+          if (visibleOverlayPage?.uuid == generatedUUID && enableAnimationRepeat) {
+            if (!inTheMiddleOfFuture) {
+              inTheMiddleOfFuture=true;
+              Future.delayed(
+                  Duration(milliseconds: animationRepeatDelayMilliseconds))
+                  .then((d) {
+                if (visibleOverlayPage?.uuid == generatedUUID) {
+                  animationController.forward();
+                  inTheMiddleOfFuture=false;
+                }
+              });
+            }
+          }
         }
       }
     });
-    //animationController.forward();
   }
   _overlays[tagName] = OverlayData(
+    uuid: generatedUUID,
     context: context,
       animationController: animationController,
       widgetsGlobalKeys: widgetsGlobalKeys,
       enabledVisibleWidgetsCount: enabledVisibleWidgetsCount,
       disabledVisibleWidgetsCount: disabledVisibleWidgetsCount,
       tagName: tagName,
+      showOverlay: (){
+          animationController?.reset();
+          animationController?.forward();
+      },
+      hideOverlay: (){
+      animationController?.reset();
+      },
       entry: OverlayEntry(builder: (BuildContext context) =>
       FutureBuilder(
           future: waitForFrameToEnd(),

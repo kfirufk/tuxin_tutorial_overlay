@@ -47,17 +47,24 @@ void createTutorialOverlay(
     {@required String tagName,
       @required BuildContext context,
       bool enableHolesAnimation = true,
+      bool enableAnimationRepeat = true,
       double defaultPadding = 4,
     List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
-    Widget description})
+    Widget description,
+    int highlightCount=3,
+    int animationMilliseconds=150,
+    int animationRepeatDelayMilliseconds = 3000
+    })
 ```
 `tagName` - the name of the overlay screen, to be used later when you want to show it
 
 `context` - the BuildContext of the page
 
 `enableHolesAnimation` - enable animation on visible widgets to draw attention to them
+
+`enableAnimationRepeat` - enable animation repeat
 
 `defaultPadding` - default padding to add to each hole that shows a widget
 
@@ -68,6 +75,12 @@ void createTutorialOverlay(
 `bgColor` - a custom background color. default is Black with opacity of 0.4.
 
 `description` - a Widget to display on top of the overlay, usually contains instructions on current frame
+
+`highlightCount` - number of times to run the highlight animation 
+
+`animationMilliseconds` - the milliseconds that each direction of animation will take (forward, reverse)
+
+`animationRepeatDelayMilliseconds` - milliseconds to wait before animation repeats itself
 
 I also created two functions to show and hide an overlay.  
 
