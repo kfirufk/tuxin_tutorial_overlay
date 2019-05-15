@@ -1,3 +1,8 @@
+## [0.4.1] - 14/05/19
+
+* removed printing debug information by default
+* added missing new parameters to createTutorialOverlayIfNotExists function
+
 ## [0.4.0] - 14/05/19
 
 * added uuid package to distinguish between each overlay with same tag name

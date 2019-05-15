@@ -19,7 +19,7 @@ Lock _showOverlayLock = Lock();
 final uuid = new Uuid();
 
 
-bool _debugInfo = true;
+bool _debugInfo = false;
 bool _doneIt = false;
 
 class OverlayData {
@@ -152,20 +152,32 @@ Future waitForFrameToEnd() async {
 void createTutorialOverlayIfNotExists(
     {@required String tagName,
       @required BuildContext context,
-    bool enableHolesAnimation= true,
-    List<WidgetData> widgetsData = const [],
-    Function onTap,
-    Color bgColor,
-    Widget description}) {
+      bool enableHolesAnimation = true,
+      bool enableAnimationRepeat = true,
+      double defaultPadding = 4,
+      List<WidgetData> widgetsData = const [],
+      Function onTap,
+      Color bgColor,
+      Widget description,
+      int highlightCount=3,
+      int animationMilliseconds=150,
+      int animationRepeatDelayMilliseconds = 3000
+    }) {
   if (!_overlays.containsKey(tagName)) {
     createTutorialOverlay(
       context: context,
         tagName: tagName,
         enableHolesAnimation: enableHolesAnimation,
+        enableAnimationRepeat: enableAnimationRepeat,
+        defaultPadding: defaultPadding,
         widgetsData: widgetsData,
         onTap: onTap,
         bgColor: bgColor,
-        description: description);
+        description: description,
+        highlightCount: highlightCount,
+      animationMilliseconds: animationMilliseconds,
+      animationRepeatDelayMilliseconds: animationRepeatDelayMilliseconds
+    );
   }
 }
 
