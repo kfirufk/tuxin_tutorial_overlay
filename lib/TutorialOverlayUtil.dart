@@ -10,6 +10,12 @@ import 'WidgetData.dart';
 
 import 'package:uuid/uuid.dart';
 
+typedef TutorialOverlayHook = void Function(String);
+
+TutorialOverlayHook showOverlayHook;
+TutorialOverlayHook hideOverlayHook;
+
+
 OverlayData visibleOverlayPage;
 
 Map<String, OverlayData> _overlays = {};
@@ -47,6 +53,14 @@ class OverlayData {
       this.enabledVisibleWidgetsCount = 0,
       this.disabledVisibleWidgetsCount = 0,
       this.detectWidgetPositionNSizeChanges = true});
+}
+
+void setTutorialShowOverlayHook(TutorialOverlayHook func) {
+  showOverlayHook=func;
+}
+
+void setTutorialHideOverlayHook(TutorialOverlayHook func) {
+  hideOverlayHook=func;
 }
 
 void _detectWidgetPositionNSizeChange() {
@@ -109,14 +123,19 @@ void _showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = fal
     }
   });
 
+  final bool isNotSamePage = visibleOverlayPage == null || visibleOverlayPage.tagName != tagName;
+
   if (redisplayOverlayIfSameTAgName ||
-      (visibleOverlayPage == null || visibleOverlayPage.tagName != tagName)) {
+      isNotSamePage) {
     _printIfDebug('_showOverlayEntry', "tagname null or differs from current");
     // ignore if tag name already displayed
     if (!_overlays.containsKey(tagName)) {
       throw new Exception("tag name '$tagName' for overlay does not exists!");
     }
-    hideOverlayEntryIfExists();
+    hideOverlayEntryIfExists(toRunHook: isNotSamePage);
+    if (isNotSamePage && showOverlayHook != null) {
+      showOverlayHook(tagName);
+    }
     final OverlayData data = _overlays[tagName];
     Overlay.of(data.context).insert(data.entry);
     visibleOverlayPage = data;
@@ -134,9 +153,12 @@ void showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = true
   );
 }
 
-void hideOverlayEntryIfExists() {
+void hideOverlayEntryIfExists({bool toRunHook=true}) {
   if (visibleOverlayPage != null) {
     _printIfDebug('hideOverlayEntryIfExists', "found tag ${visibleOverlayPage.tagName}");
+    if (toRunHook && hideOverlayHook != null) {
+      hideOverlayHook(visibleOverlayPage.tagName);
+    }
     visibleOverlayPage.hideOverlay();
     visibleOverlayPage.entry.remove();
     visibleOverlayPage = null;

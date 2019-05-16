@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double _leftPosition = 0;
   @override
   void initState() {
+    setTutorialShowOverlayHook((String tagName)=>print('SHOWING $tagName'));
     SchedulerBinding.instance.addPostFrameCallback((_) {
       createTutorialOverlay(
         context: context,

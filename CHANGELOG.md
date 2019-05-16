@@ -1,4 +1,8 @@
-## [0.4.1] - 14/05/19
+## [0.4.2] - 16/05/19
+
+* added hooks to hide and showing overlays (for analytics or what not)
+
+## [0.4.1] - 15/05/19
 
 * removed printing debug information by default
 * added missing new parameters to createTutorialOverlayIfNotExists function
