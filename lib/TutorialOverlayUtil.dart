@@ -15,7 +15,6 @@ typedef TutorialOverlayHook = void Function(String);
 TutorialOverlayHook showOverlayHook;
 TutorialOverlayHook hideOverlayHook;
 
-
 OverlayData visibleOverlayPage;
 
 Map<String, OverlayData> _overlays = {};
@@ -23,7 +22,6 @@ Map<GlobalKey, Rect> _rectMap = {};
 Lock _showOverlayLock = Lock();
 
 final uuid = new Uuid();
-
 
 bool _debugInfo = false;
 bool _doneIt = false;
@@ -40,27 +38,29 @@ class OverlayData {
   Function hideOverlay;
   Function showOverlay;
   String uuid;
+  bool isOverlayBgTransparent;
 
   OverlayData(
       {@required this.entry,
-       @required this.tagName,
-       @required this.context,
-       @required this.hideOverlay,
-       @required this.showOverlay,
-        @required this.uuid,
+      @required this.tagName,
+      @required this.context,
+      @required this.hideOverlay,
+      @required this.showOverlay,
+      @required this.uuid,
       this.widgetsGlobalKeys,
       this.animationController,
       this.enabledVisibleWidgetsCount = 0,
       this.disabledVisibleWidgetsCount = 0,
-      this.detectWidgetPositionNSizeChanges = true});
+      this.detectWidgetPositionNSizeChanges = true,
+      this.isOverlayBgTransparent = false});
 }
 
 void setTutorialShowOverlayHook(TutorialOverlayHook func) {
-  showOverlayHook=func;
+  showOverlayHook = func;
 }
 
 void setTutorialHideOverlayHook(TutorialOverlayHook func) {
-  hideOverlayHook=func;
+  hideOverlayHook = func;
 }
 
 void _detectWidgetPositionNSizeChange() {
@@ -105,16 +105,19 @@ _printIfDebug(String funcName, String str) {
 
 void redrawCurrentOverlay() {
   if (visibleOverlayPage != null) {
-    _printIfDebug('redrawCurrentOverlay',"tag ${visibleOverlayPage.tagName}");
+    _printIfDebug('redrawCurrentOverlay', "tag ${visibleOverlayPage.tagName}");
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      _showOverlayEntry(tagName: visibleOverlayPage.tagName, redisplayOverlayIfSameTAgName: true);
+      _showOverlayEntry(
+          tagName: visibleOverlayPage.tagName,
+          redisplayOverlayIfSameTAgName: true);
     });
   } else {
-    _printIfDebug('redrawCurrentOverlay','called with empty tag');
+    _printIfDebug('redrawCurrentOverlay', 'called with empty tag');
   }
 }
 
-void _showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = false}) {
+void _showOverlayEntry(
+    {String tagName, bool redisplayOverlayIfSameTAgName = false}) {
   _printIfDebug('_showOverlayEntry', "for tag $tagName");
   SchedulerBinding.instance.addPostFrameCallback((_) {
     if (!_doneIt) {
@@ -123,10 +126,10 @@ void _showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = fal
     }
   });
 
-  final bool isNotSamePage = visibleOverlayPage == null || visibleOverlayPage.tagName != tagName;
+  final bool isNotSamePage =
+      visibleOverlayPage == null || visibleOverlayPage.tagName != tagName;
 
-  if (redisplayOverlayIfSameTAgName ||
-      isNotSamePage) {
+  if (redisplayOverlayIfSameTAgName || isNotSamePage) {
     _printIfDebug('_showOverlayEntry', "tagname null or differs from current");
     // ignore if tag name already displayed
     if (!_overlays.containsKey(tagName)) {
@@ -140,22 +143,22 @@ void _showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = fal
     Overlay.of(data.context).insert(data.entry);
     visibleOverlayPage = data;
     visibleOverlayPage.showOverlay();
-
   }
   _printIfDebug('_showOverlayEntry', 'function completed');
 }
 
-void showOverlayEntry({String tagName, bool redisplayOverlayIfSameTAgName = true}) async {
-  SchedulerBinding.instance.addPostFrameCallback((d)=>
-  _showOverlayLock.synchronized(()=>
-      _showOverlayEntry(tagName: tagName,redisplayOverlayIfSameTAgName: redisplayOverlayIfSameTAgName)
-  )
-  );
+void showOverlayEntry(
+    {String tagName, bool redisplayOverlayIfSameTAgName = true}) async {
+  SchedulerBinding.instance.addPostFrameCallback((d) =>
+      _showOverlayLock.synchronized(() => _showOverlayEntry(
+          tagName: tagName,
+          redisplayOverlayIfSameTAgName: redisplayOverlayIfSameTAgName)));
 }
 
-void hideOverlayEntryIfExists({bool toRunHook=true}) {
+void hideOverlayEntryIfExists({bool toRunHook = true}) {
   if (visibleOverlayPage != null) {
-    _printIfDebug('hideOverlayEntryIfExists', "found tag ${visibleOverlayPage.tagName}");
+    _printIfDebug(
+        'hideOverlayEntryIfExists', "found tag ${visibleOverlayPage.tagName}");
     if (toRunHook && hideOverlayHook != null) {
       hideOverlayHook(visibleOverlayPage.tagName);
     }
@@ -173,21 +176,21 @@ Future waitForFrameToEnd() async {
 
 void createTutorialOverlayIfNotExists(
     {@required String tagName,
-      @required BuildContext context,
-      bool enableHolesAnimation = true,
-      bool enableAnimationRepeat = true,
-      double defaultPadding = 4,
-      List<WidgetData> widgetsData = const [],
-      Function onTap,
-      Color bgColor,
-      Widget description,
-      int highlightCount=3,
-      int animationMilliseconds=150,
-      int animationRepeatDelayMilliseconds = 3000
-    }) {
+    @required BuildContext context,
+    bool enableHolesAnimation = true,
+    bool enableAnimationRepeat = true,
+    double defaultPadding = 4,
+    List<WidgetData> widgetsData = const [],
+    Function onTap,
+    Color bgColor,
+    Widget description,
+    int highlightCount = 3,
+    int animationMilliseconds = 150,
+    int animationRepeatDelayMilliseconds = 3000,
+    bool isOverlayBgTransparent = false}) {
   if (!_overlays.containsKey(tagName)) {
     createTutorialOverlay(
-      context: context,
+        context: context,
         tagName: tagName,
         enableHolesAnimation: enableHolesAnimation,
         enableAnimationRepeat: enableAnimationRepeat,
@@ -197,26 +200,26 @@ void createTutorialOverlayIfNotExists(
         bgColor: bgColor,
         description: description,
         highlightCount: highlightCount,
-      animationMilliseconds: animationMilliseconds,
-      animationRepeatDelayMilliseconds: animationRepeatDelayMilliseconds
-    );
+        animationMilliseconds: animationMilliseconds,
+        animationRepeatDelayMilliseconds: animationRepeatDelayMilliseconds,
+        isOverlayBgTransparent: isOverlayBgTransparent);
   }
 }
 
 void createTutorialOverlay(
     {@required String tagName,
-      @required BuildContext context,
-      bool enableHolesAnimation = true,
-      bool enableAnimationRepeat = true,
-      double defaultPadding = 4,
+    @required BuildContext context,
+    bool enableHolesAnimation = true,
+    bool enableAnimationRepeat = true,
+    double defaultPadding = 4,
     List<WidgetData> widgetsData = const [],
     Function onTap,
     Color bgColor,
     Widget description,
-    int highlightCount=3,
-    int animationMilliseconds=150,
-    int animationRepeatDelayMilliseconds = 3000
-    }) {
+    int highlightCount = 3,
+    int animationMilliseconds = 150,
+    int animationRepeatDelayMilliseconds = 3000,
+    bool isOverlayBgTransparent = false}) {
   final String generatedUUID = uuid.v4();
   _printIfDebug('createTutorialOverlay', "starteed for tag $tagName");
   if (visibleOverlayPage != null && visibleOverlayPage.tagName == tagName) {
@@ -236,38 +239,37 @@ void createTutorialOverlay(
   });
   AnimationController animationController;
   CurvedAnimation animation;
-  if (enableHolesAnimation) {
-    animationController =
-        AnimationController(
-            vsync: Overlay.of(context),
-            duration: Duration(milliseconds: animationMilliseconds));
-    animation =
-        CurvedAnimation(parent: animationController,
-            curve: Curves.easeInOut,
-            reverseCurve: Curves.easeInOut);
+  if (!isOverlayBgTransparent && enableHolesAnimation) {
+    animationController = AnimationController(
+        vsync: Overlay.of(context),
+        duration: Duration(milliseconds: animationMilliseconds));
+    animation = CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeInOut,
+        reverseCurve: Curves.easeInOut);
     int animCount = 0;
-    bool inTheMiddleOfFuture=false;
+    bool inTheMiddleOfFuture = false;
     animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         if (animCount < highlightCount) {
           animationController.reverse();
           animCount++;
         }
-      }
-      else if (status == AnimationStatus.dismissed) {
+      } else if (status == AnimationStatus.dismissed) {
         if (animCount < highlightCount) {
           animationController.forward();
         } else {
-          animCount=0;
-          if (visibleOverlayPage?.uuid == generatedUUID && enableAnimationRepeat) {
+          animCount = 0;
+          if (visibleOverlayPage?.uuid == generatedUUID &&
+              enableAnimationRepeat) {
             if (!inTheMiddleOfFuture) {
-              inTheMiddleOfFuture=true;
+              inTheMiddleOfFuture = true;
               Future.delayed(
-                  Duration(milliseconds: animationRepeatDelayMilliseconds))
+                      Duration(milliseconds: animationRepeatDelayMilliseconds))
                   .then((d) {
                 if (visibleOverlayPage?.uuid == generatedUUID) {
                   animationController.forward();
-                  inTheMiddleOfFuture=false;
+                  inTheMiddleOfFuture = false;
                 }
               });
             }
@@ -277,46 +279,47 @@ void createTutorialOverlay(
     });
   }
   _overlays[tagName] = OverlayData(
-    uuid: generatedUUID,
-    context: context,
+      isOverlayBgTransparent: isOverlayBgTransparent,
+      uuid: generatedUUID,
+      context: context,
       animationController: animationController,
       widgetsGlobalKeys: widgetsGlobalKeys,
       enabledVisibleWidgetsCount: enabledVisibleWidgetsCount,
       disabledVisibleWidgetsCount: disabledVisibleWidgetsCount,
       tagName: tagName,
-      showOverlay: (){
-          animationController?.reset();
-          animationController?.forward();
+      showOverlay: () {
+        animationController?.reset();
+        animationController?.forward();
       },
-      hideOverlay: (){
-      animationController?.reset();
+      hideOverlay: () {
+        animationController?.reset();
       },
-      entry: OverlayEntry(builder: (BuildContext context) =>
-      FutureBuilder(
-          future: waitForFrameToEnd(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-            return GestureDetector(
-                onTap: onTap,
-                child: ClipPath(
-                    clipper: InvertedClipper(
-                      padding: defaultPadding,
-                        animation: animation,
-                        reclip: animationController,
-                        widgetsData: widgetsData),
-                    child: CustomPaint(
-                      child: Container(
-                        child: description,
-                      ),
-                      painter: OverlayPainter(
-                        padding: defaultPadding,
-                          animation: animation,
-                          bgColor: bgColor,
-                          context: context,
-                          widgetsData: widgetsData),
-                    )));
-          }
-  )
-      ));
+      entry: OverlayEntry(
+          builder: (BuildContext context) => FutureBuilder(
+              future: waitForFrameToEnd(),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (isOverlayBgTransparent) {
+                  return description;
+                } else {
+                  return GestureDetector(
+                      onTap: onTap,
+                      child: ClipPath(
+                          clipper: InvertedClipper(
+                              padding: defaultPadding,
+                              animation: animation,
+                              reclip: animationController,
+                              widgetsData: widgetsData),
+                          child: CustomPaint(
+                            child: Container(
+                              child: description,
+                            ),
+                            painter: OverlayPainter(
+                                padding: defaultPadding,
+                                animation: animation,
+                                bgColor: bgColor,
+                                context: context,
+                                widgetsData: widgetsData),
+                          )));
+                }
+              })));
 }
-

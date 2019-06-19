@@ -34,10 +34,10 @@ class _MyHomePageState extends State<MyHomePage> {
   double _leftPosition = 0;
   @override
   void initState() {
-    setTutorialShowOverlayHook((String tagName)=>print('SHOWING $tagName'));
+    setTutorialShowOverlayHook((String tagName) => print('SHOWING $tagName'));
     SchedulerBinding.instance.addPostFrameCallback((_) {
       createTutorialOverlay(
-        context: context,
+          context: context,
           tagName: 'example',
           bgColor: Colors.green.withOpacity(
               0.4), // Optional. uses black color with 0.4 opacity by default

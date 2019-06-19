@@ -1,3 +1,7 @@
+## [0.4.3] - 19/06/19
+
+* added isOverlayBgTransparent optional parameter to allow overlay without a blocking background
+
 ## [0.4.2] - 16/05/19
 
 * added hooks to hide and showing overlays (for analytics or what not)
